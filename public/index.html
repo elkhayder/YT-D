@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/style.css">
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <title>Youtube Downloader</title>
+</head>
+
+<body>
+    <div id="spinner">
+        <div class="loader"></div>
+    </div>
+    <div class="container">
+        <nav>
+            <!-- Navbar -->
+            <a href="#">Home</a>
+            <a href="#">Settings</a>
+            <a href="#">Contact</a>
+            <a href="#">Support</a>
+        </nav>
+
+        <img src="img/logo.png" style="user-select: none;" alt="">
+
+        <div class="searchbox">
+            <i class="far fa-search"></i>
+            <input type="text" placeholder="SEARCH VIDEOS BY NAME, DIRECT LINK OR VIDEO ID" name="" id="SearchInput">
+            <span id="SearchButton">
+                Search
+            </span>
+        </div>
+
+        <div id="ResultContainer">
+        
+            <div class="result">
+                <img src="{{thumbnail}}" alt="">
+                <div class="infos-container">
+                    <div class="video-info">
+                        <p class="video-name">
+                            <a href="{{link}}" target="_blank">{{title}}</a>
+                        </p>
+                        <p>
+                            <span>{{duration}} - <a href="{{ChannelLink}}" target="_blank">{{channel}} {{verified}}</a></span>
+                        </p>
+                    </div>
+                    <div class="actions">
+                        <button class="download" onclick="DownloadAudio('{{link}}')">
+                            <i class="fab fa-itunes-note"></i> Download
+                        </button>
+                        <button class="settings">
+                            <i class="fal fa-cog"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!--<div class="more">
+            <i class="fas fa-plus"></i>
+            More
+        </div>-->
+        
+        <footer>
+            <p>
+                Made with <i class="fal fa-heart"></i> and <i class="fal fa-coffee"></i> by <a href="https://www.github.com/elkhayder" target="_blank">ElkhayDer</a>
+            </p>  
+        </footer>
+    </div>
+
+    <script defer src="js/main.js"></script>
+</body>
+
+</html>
