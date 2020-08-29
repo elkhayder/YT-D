@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Not found</title>
+    <link href="https://fonts.googleapis.com/css2?family=Alata&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            text-decoration: none;
+        }
+        html {
+            font-size: 100px;
+            user-select: none;
+        }
+        #container {
+            background: #0c18218f;
+            color: #ffffff;
+            font-family: 'Alata', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            width: 100vw;
+        }
+        h1 {
+            font-size: 1rem;
+            margin: 10px;
+        }
+        h4 {
+                font-size: 0.5rem;
+        }
+        a {
+            width: 200px;
+            height: 45px;
+            font-size: 0.3rem;
+            text-align: center;
+            border: 1px solid #ffffff;
+            border-radius: 10px;
+            margin-top: 50px;
+            transition: .3s;
+            color: #ffffff;
+        }
+        a:hover {
+            background-color: #ffffff;
+            color: #0c1821;
+        }
+        @media (max-width: 784px) {
+            h1 {
+                font-size: 0.7rem;
+            }
+            h4 {
+                font-size: 0.2rem;
+            }
+            a {
+                width: 150px;
+                font-size: 0.2rem;
+                height: 30px;
+            }
+        }
+        @media (max-width: 400px) {
+            h1 {
+                font-size: 0.5rem;
+            }
+            h4 {
+                font-size: 0.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <h1>404</h1>
+        <h4>Page you requested is missing</h4>
+        <a href="/index.html">Go Back</a>
+    </div>
+</body>
+</html>

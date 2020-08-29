@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 const port = 80;
 const fs = require("fs");
-
+const path = require('path');
 
 const ytsr = require("ytsr");
 ytsr.do_warn_deprecate = false;
@@ -42,11 +42,8 @@ app.get('/download/:url', async function(req, res) {
 });
 
 app.get('*', function(req, res){
-  res.status(404).send('what???');
+  res.status(404).sendFile(path.join(__dirname + '/private/404.html'));
 });
-
-// http://localhost/GetDownloadLinks/https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DaFpefbl6JRE
-
 
 const SearchVideo = (keyword, limit) => {
   return new Promise( async (resolve, reject) => {
@@ -60,20 +57,3 @@ const SearchVideo = (keyword, limit) => {
     }
   });
 }
-
-/*const ExtractResult = (result) => {
-  let r = [];
-  for(i = 0; i < result.length; i++) {
-      x = result[i];
-      r[i] = {
-          title: x.title, // TITLE
-          thumbnail: x.thumbnail, // THUMBNAIL
-          link: x.link, // LINK
-          channel: x.author.name,
-          ChannelLink: x.author.ref,
-          isVerified: x.author.verified,
-          duration: x.duration
-      }
-  }
-  return r;
-}*/
