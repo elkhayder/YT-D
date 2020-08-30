@@ -31,98 +31,37 @@ app.get('/search/:keyword/:results*?', async function (req, res) { // Search API
 app.get('/download/:url', async function(req, res) {
 
     res.setHeader('Access-Control-Allow-Origin', "*");
-
     var videoUrl = decodeURIComponent(req.params.url);
     const VideoData = await SearchVideo(videoUrl, 1);
-    res.header('Content-Disposition', 'attachment; filename="[YT-D.com] - ' + VideoData.items[0].title + '.mp4"'); // SET HEADERS
-
-    /*const tracker = {
-      start: Date.now(),
-      audio: { downloaded: 0, total: Infinity },
-      video: { downloaded: 0, total: Infinity },
-      merged: { frame: 0, speed: '0x', fps: 0 },
-    };
-    
+    //res.header('Content-Disposition', 'attachment; filename="[YT-D.com] - ' + VideoData.items[0].title + '.mp4"'); // SET HEADERS
     // Get audio and video stream going
-    const audio = ytdl(videoUrl, { filter: 'audioonly', quality: 'highestaudio' })
-      .on('progress', (_, downloaded, total) => {
-        tracker.audio = { downloaded, total };
-      });
-    const video = ytdl(videoUrl, { filter: 'videoonly', quality: 'highestvideo' })
-      .on('progress', (_, downloaded, total) => {
-        tracker.video = { downloaded, total };
-      });
-    
-    // Get the progress bar going
-    const progressbar = setInterval(() => {
-      readline.cursorTo(process.stdout, 0);
-      const toMB = i => (i / 1024 / 1024).toFixed(2);
-    
-      process.stdout.write(`Audio  | ${(tracker.audio.downloaded / tracker.audio.total * 100).toFixed(2)}% processed `);
-      process.stdout.write(`(${toMB(tracker.audio.downloaded)}MB of ${toMB(tracker.audio.total)}MB).${' '.repeat(10)}\n`);
-    
-      process.stdout.write(`Video  | ${(tracker.video.downloaded / tracker.video.total * 100).toFixed(2)}% processed `);
-      process.stdout.write(`(${toMB(tracker.video.downloaded)}MB of ${toMB(tracker.video.total)}MB).${' '.repeat(10)}\n`);
-    
-      process.stdout.write(`Merged | processing frame ${tracker.merged.frame} `);
-      process.stdout.write(`(at ${tracker.merged.fps} fps => ${tracker.merged.speed}).${' '.repeat(10)}\n`);
-    
-      process.stdout.write(`running for: ${((Date.now() - tracker.start) / 1000 / 60).toFixed(2)} Minutes.`);
-      readline.moveCursor(process.stdout, 0, -3);
-    }, 1000);
-    
+    const thisID = makeid(10);
+    const audio = ytdl(videoUrl, { filter: 'audioonly', quality: 'highestaudio' }).pipe(fs.createWriteStream(path.join("PreProcess", thisID + " - Audio.mp4")));
+    const video = ytdl(videoUrl, { filter: 'videoonly', quality: 'highestvideo' }).pipe(fs.createWriteStream(path.join("PreProcess", thisID + " - Video.mp4")));
+    const {audioR, videoR} = await Promise.all(audio, video);
     // Start the ffmpeg child process
     const ffmpegProcess = cp.spawn(ffmpeg, [
       // Remove ffmpeg's console spamming
       '-loglevel', '0', '-hide_banner',
-      // Redirect/enable progress messages
-      '-progress', 'pipe:3',
-      // 3 second audio offset
-      '-itsoffset', '3.0', '-i', 'pipe:4',
-      '-i', 'pipe:5',
+      // Pipe content
+      '-i', path.join("PreProcess", thisID + " - Audio.mp4"),
+      '-i', path.join("PreProcess", thisID + " - Video.mp4"),
       // Choose some fancy codes
-      '-c:v', 'libx264', '-x265-params', 'log-level=0',
+      '-c:v', 'libx264', '-x265-params', 'log-level=0', '-crf', '28',
       '-c:a', 'flac',
-
       // Define output container
-      '-f', 'matroska', 'pipe:6',
-    ], {
-      windowsHide: true,
-      stdio: [
-        /* Standard: stdin, stdout, stderr 
-        'inherit', 'inherit', 'inherit',
-        /* Custom: pipe:3, pipe:4, pipe:5, pipe:6 
-        'pipe', 'pipe', 'pipe', 'pipe',
-      ],
-    });
+      '-f', 'matroska', path.join("PreProcess", thisID + " - Final.mp4"),
+    ]);
     ffmpegProcess.on('close', () => {
-      process.stdout.write('\n\n\n\n');
-      clearInterval(progressbar);
-      console.log('done');
+      res.send(path.join("PreProcess", thisID + " - Final.mp4"));
     });
-    
-    // Link streams
-    // FFmpeg creates the transformer streams and we just have to insert / read data
-    ffmpegProcess.stdio[3].on('data', chunk => {
-      // Parse the param=value list returned by ffmpeg
-      const lines = chunk.toString().trim().split('\n');
-      const args = {};
-      for (const l of lines) {
-        const [key, value] = l.trim().split('=');
-        args[key] = value;
-      }
-      tracker.merged = args;
-    });
-    audio.pipe(ffmpegProcess.stdio[4]);
-    video.pipe(ffmpegProcess.stdio[5]);
-    ffmpegProcess.stdio[6].pipe(res);*/
-    const stream = ytdl(videoUrl, { quality: "highestaudio" });
+    /*const stream = ytdl(videoUrl, { quality: "highestaudio" });
     stream.on('end', () => { // To be called at stream end event
       res.end(); // End response
       stream.destroy(); // destroy Stream leftovers
     });
 
-    stream.pipe(res);
+    stream.pipe(res);*/
 });
 
 app.get('*', function(req, res){
@@ -140,4 +79,14 @@ const SearchVideo = (keyword, limit) => {
       reject(error);
     }
   });
+}
+
+const makeid = function(length) {
+  var result           = '';
+  var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  var charactersLength = characters.length;
+  for ( var i = 0; i < length; i++ ) {
+     result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
 }
