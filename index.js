@@ -34,9 +34,9 @@ app.get('/download/:url', async function(req, res) {
 
     var videoUrl = decodeURIComponent(req.params.url);
     const VideoData = await SearchVideo(videoUrl, 1);
-    res.header('Content-Disposition', 'attachment; filename="[YT-D.com] - ' + VideoData.items[0].title + '.mkv"'); // SET HEADERS
+    res.header('Content-Disposition', 'attachment; filename="[YT-D.com] - ' + VideoData.items[0].title + '.mp4"'); // SET HEADERS
 
-    const tracker = {
+    /*const tracker = {
       start: Date.now(),
       audio: { downloaded: 0, total: Infinity },
       video: { downloaded: 0, total: Infinity },
@@ -89,9 +89,9 @@ app.get('/download/:url', async function(req, res) {
     ], {
       windowsHide: true,
       stdio: [
-        /* Standard: stdin, stdout, stderr */
+        /* Standard: stdin, stdout, stderr 
         'inherit', 'inherit', 'inherit',
-        /* Custom: pipe:3, pipe:4, pipe:5, pipe:6 */
+        /* Custom: pipe:3, pipe:4, pipe:5, pipe:6 
         'pipe', 'pipe', 'pipe', 'pipe',
       ],
     });
@@ -115,14 +115,14 @@ app.get('/download/:url', async function(req, res) {
     });
     audio.pipe(ffmpegProcess.stdio[4]);
     video.pipe(ffmpegProcess.stdio[5]);
-    ffmpegProcess.stdio[6].pipe(res);
-    /*const stream = ytdl(videoUrl, { quality: "highestaudio" });
+    ffmpegProcess.stdio[6].pipe(res);*/
+    const stream = ytdl(videoUrl, { quality: "highestaudio" });
     stream.on('end', () => { // To be called at stream end event
       res.end(); // End response
       stream.destroy(); // destroy Stream leftovers
     });
 
-    stream.pipe(res);*/
+    stream.pipe(res);
 });
 
 app.get('*', function(req, res){
