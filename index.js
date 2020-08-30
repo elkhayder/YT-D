@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 const port = 80;
 const fs = require("fs");
+const readline = require('readline');
 const cp = require('child_process');
 const path = require('path');
 const ffmpeg = require("ffmpeg-static")
@@ -35,8 +36,42 @@ app.get('/download/:url', async function(req, res) {
     const VideoData = await SearchVideo(videoUrl, 1);
     res.header('Content-Disposition', 'attachment; filename="[YT-D.com] - ' + VideoData.items[0].title + '.mkv"'); // SET HEADERS
 
-    const video = ytdl(videoUrl, { filter: 'videoonly', quality: 'highestvideo' });
-    const audio = ytdl(videoUrl, { filter: 'audioonly', quality: 'highestaudio' });
+    const tracker = {
+      start: Date.now(),
+      audio: { downloaded: 0, total: Infinity },
+      video: { downloaded: 0, total: Infinity },
+      merged: { frame: 0, speed: '0x', fps: 0 },
+    };
+    
+    // Get audio and video stream going
+    const audio = ytdl(videoUrl, { filter: 'audioonly', quality: 'highestaudio' })
+      .on('progress', (_, downloaded, total) => {
+        tracker.audio = { downloaded, total };
+      });
+    const video = ytdl(videoUrl, { filter: 'videoonly', quality: 'highestvideo' })
+      .on('progress', (_, downloaded, total) => {
+        tracker.video = { downloaded, total };
+      });
+    
+    // Get the progress bar going
+    const progressbar = setInterval(() => {
+      readline.cursorTo(process.stdout, 0);
+      const toMB = i => (i / 1024 / 1024).toFixed(2);
+    
+      process.stdout.write(`Audio  | ${(tracker.audio.downloaded / tracker.audio.total * 100).toFixed(2)}% processed `);
+      process.stdout.write(`(${toMB(tracker.audio.downloaded)}MB of ${toMB(tracker.audio.total)}MB).${' '.repeat(10)}\n`);
+    
+      process.stdout.write(`Video  | ${(tracker.video.downloaded / tracker.video.total * 100).toFixed(2)}% processed `);
+      process.stdout.write(`(${toMB(tracker.video.downloaded)}MB of ${toMB(tracker.video.total)}MB).${' '.repeat(10)}\n`);
+    
+      process.stdout.write(`Merged | processing frame ${tracker.merged.frame} `);
+      process.stdout.write(`(at ${tracker.merged.fps} fps => ${tracker.merged.speed}).${' '.repeat(10)}\n`);
+    
+      process.stdout.write(`running for: ${((Date.now() - tracker.start) / 1000 / 60).toFixed(2)} Minutes.`);
+      readline.moveCursor(process.stdout, 0, -3);
+    }, 1000);
+    
+    // Start the ffmpeg child process
     const ffmpegProcess = cp.spawn(ffmpeg, [
       // Remove ffmpeg's console spamming
       '-loglevel', '0', '-hide_banner',
@@ -46,8 +81,9 @@ app.get('/download/:url', async function(req, res) {
       '-itsoffset', '3.0', '-i', 'pipe:4',
       '-i', 'pipe:5',
       // Choose some fancy codes
-      '-c:v', 'libx265', '-x265-params', 'log-level=0',
+      '-c:v', 'libx264', '-x265-params', 'log-level=0',
       '-c:a', 'flac',
+
       // Define output container
       '-f', 'matroska', 'pipe:6',
     ], {
@@ -59,7 +95,15 @@ app.get('/download/:url', async function(req, res) {
         'pipe', 'pipe', 'pipe', 'pipe',
       ],
     });
-    /*ffmpegProcess.stdio[3].on('data', chunk => {
+    ffmpegProcess.on('close', () => {
+      process.stdout.write('\n\n\n\n');
+      clearInterval(progressbar);
+      console.log('done');
+    });
+    
+    // Link streams
+    // FFmpeg creates the transformer streams and we just have to insert / read data
+    ffmpegProcess.stdio[3].on('data', chunk => {
       // Parse the param=value list returned by ffmpeg
       const lines = chunk.toString().trim().split('\n');
       const args = {};
@@ -68,7 +112,7 @@ app.get('/download/:url', async function(req, res) {
         args[key] = value;
       }
       tracker.merged = args;
-    });*/
+    });
     audio.pipe(ffmpegProcess.stdio[4]);
     video.pipe(ffmpegProcess.stdio[5]);
     ffmpegProcess.stdio[6].pipe(res);
